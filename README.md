@@ -1,46 +1,74 @@
-# 👶💻 Code & Kids  
+# ai-text-detector
 
-Parenting in debug mode — stories, hacks, and survival tips from developers raising kids.  
-程序员的带娃手记：像调试代码一样解决育儿挑战，分享经验、妙招与日常生存指南。  
+一个基于 React + Vite 的单页应用，用于检测输入文本是否由 AI 生成。结合文本统计、困惑度曲线、大模型裁判和 green-list 相似度评分。
 
----
+主要功能
 
-## 📖 关于这个仓库 | About This Repo  
+- 文本输入（粘贴 / .txt 上传）
+- 基础统计（词频 / 标点 / 句长）并可视化
+- 使用 DeepSeek 计算困惑度并绘制曲线
+- 使用 DeepSeek 作为大模型裁判，返回 AI 概率与说明
+- 本地 green-list 相似度比对（embedding / 余弦相似度）
 
-这个仓库记录了作为程序员带娃的点滴：  
-- 如何像写代码一样思考育儿问题  
-- 如何用技术工具提升带娃效率  
-- 如何在修 Bug 与哄娃之间切换  
-- 一些日常的心得、段子和小妙招  
+目录结构（简要）
 
-This repo is a collection of notes, stories, and hacks from developers who are also parents.  
-Think of it as parenting in **debug mode**.  
+- `src/components/` - React 组件
+- `src/utils/` - 工具函数（文本统计、困惑度、裁判、green-list）
+- `src/pages/ResultPage.tsx` - 主页面
+- `server/` - 可选代理，用于安全转发 DeepSeek API 请求
 
----
+本地开发
 
-## 🧩 内容结构 | Structure
-├── notes/           # 带娃心得与日常 
-├── hacks/           # 小工具、小脚本、小技巧 
-├── stories/         # 趣事与段子 
-├── resources/       # 推荐的书籍、工具、文章 
-└── README.md
+1. 前端（在项目根目录）
 
----
+```bash
+# 安装依赖
+npm install
 
-## 🚀 如何参与 | Contributing  
+# 启动开发服务器
+npm run dev
+```
 
-欢迎分享你的带娃经验、搞笑故事或技术妙招。  
-Pull requests 和 issues 永远欢迎。  
+2. 后端代理（可选）
 
-Contributions are welcome! Share your stories, tools, or tips via PRs or open an issue.  
+代理用于在服务器端保存 DeepSeek API Key，并将前端请求安全转发给 DeepSeek。进入 `server/` 并安装依赖后启动：
 
----
+```bash
+cd server
+npm install express node-fetch body-parser dotenv
+node index.js
+```
 
-## 🌟 为什么做这个 | Why This Matters  
+环境变量（示例）
 
-带娃和写代码一样，都是一场 **长期迭代**：  
-- 孩子就像不断进化的版本，每天都有新 Bug 和新功能  
-- 父母则是开发者，需要随时学习、适应和优化  
+在项目根目录创建 `.env`（不要将实际 API Key 提交到仓库）：
 
-Parenting is the ultimate long-term project.  
-Let’s share knowledge, laugh at the chaos, and support each other.
+```
+# server/.env 或 部署环境变量
+DEEPSEEK_BASE_URL=https://api.deepseek.example
+DEEPSEEK_API_KEY=sk-xxxx
+PORT=5173
+
+# 前端（Vite）可选：
+VITE_DEEPSEEK_API_URL=/api/deepseek
+VITE_DEEPSEEK_API_KEY=
+VITE_DEEPSEEK_EMBED_URL=/api/deepseek/embedding
+```
+
+部署说明
+
+- 将 `server` 部署到可信任的后端环境（如 VPS、Cloud Run、Heroku、或云函数），并通过环境变量注入 `DEEPSEEK_API_KEY`。
+- 前端通过代理 `/api/deepseek/*` 发送请求到后端代理。
+
+注意事项
+
+- 不要在前端直接暴露 DeepSeek API Key。若需要在本地测试，可以把 `VITE_DEEPSEEK_API_KEY` 写入 `.env`，但上线前应移除。
+- DeepSeek 的响应格式可能与本示例代码假设略有不同，请根据实际 API 文档调整 `src/utils/perplexity.ts`、`src/utils/modelJudge.ts` 和 `src/utils/greenList.ts` 中的解析逻辑。
+
+下一步建议
+
+- 根据 DeepSeek 的真实返回字段调整解析逻辑
+- 为 green-list embedding 添加缓存以减少重复请求
+- 添加单元测试与 CI
+
+
